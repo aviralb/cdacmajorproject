@@ -1,0 +1,48 @@
+from pyspark.sql import Row
+
+drive = sc.textFile("hdfs://quickstart.cloudera:8020/user/cloudera/project/drive_nocol.csv").map(lambda line: line.split(','))
+
+drive.take(2)
+
+from pyspark.sql.functions  import date_format
+
+driveDF = drive.map(lambda c: Row(veh_id=c[0], trip_id=c[1], datetime=c[2], velocity=float(c[3]), accel_x=c[4], accel_y=c[5], accel_z=c[6], engine_coolant_temp=float(c[7]), eng_load=float(c[8]), fuel_level=float(c[9]), iat=float(c[10]), rpm=float(c[11]))).toDF().withColumn("Date", date_format('datetime', "yyyy-MM-dd")).drop('datetime')
+
+driveDF
+
+driveRdd = driveDF.rdd
+
+type(driveRdd)
+
+
+trip = sc.textFile("hdfs://quickstart.cloudera:8020/user/cloudera/project/trip_nocol.csv").map(lambda line: line.split(','))
+
+tripDF = trip.map(lambda c: Row(vehicle_id=c[0], trip_id=c[1], datetime=c[2], latitude=c[3], longitude=c[4], velocity=float(c[5]))).toDF().drop('datetime').drop('velocity').drop('trip_id')
+
+tripDF.show(2)
+
+tripRdd = tripDF.rdd
+
+type(tripRdd)
+
+
+Join
+
+driv = driveDF.alias('driv')
+
+tri = tripDF.alias('tri')
+
+drive_trip_join = driv.join(tri, driv.veh_id == tri.vehicle_id).drop('veh_id')
+
+drive_trip_join.show(2)
+
+
+weather = sc.textFile("hdfs://quickstart.cloudera:8020/user/cloudera/project/weather_nocol.csv").map(lambda line: line.split(','))
+
+weatherDF = weather.map(lambda c: Row(x=float(c[0]), y=float(c[1]), date=c[2], time=c[3],lat=c[4], long=c[5], temperature_data=float(c[6]), temperature_unit=c[7], precipitation_data=float(c[8]), precipitation_unit=c[9], wind_ew_data=float(c[10]), wind_ew_unit=c[11], wind_ns_data=float(c[12]), wind_ns_unit=c[13])).toDF()
+
+weatherDF.show(2)
+
+df = drive_trip_join.join(weatherDF, (drive_trip_join.latitude == weatherDF.latitude) & (drive_trip_join.longitude == weatherDF.longitude) & (drive_trip_join.Date == weatherDF.date)).drop('time').drop('lat').drop('long')
+
+df.show(2)
