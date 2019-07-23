@@ -1,0 +1,29 @@
+While we are creating schema
+we use following codes for drive,trip and weather files
+
+create table drive(vehicle_id string,trip_id string,datetime string,velocity string,accel_x string,accel_y string,accel_z string,engine_coolant_temp string,eng_load string,fuel_level string,iat string,rpm string) row format delimited fields terminated by ',' stored as textfile;
+
+
+LOAD DATA INPATH '/user/cloudera/drive.csv' overwrite into table drive;
+
+
+create table trip(vehicle_id string,trip_id string,datetime string,lat string,long string,velocity string) row format delimited fields terminated by ',' stored as textfile;
+
+LOAD DATA INPATH '/user/cloudera/trip.csv' overwrite into table trip;
+
+
+create table weather2(x bigint,y bigint,date string,time string,lat float,lon float,temperature_data float,temperature_unit string,precipitation_data float,precipitation_unit string,wind_ew_data string,wind_ew_unit string,wind_ns_data float,wind_ns_unit string) row format delimited fields terminated by ',' stored as textfile;
+
+
+LOAD DATA INPATH '/user/cloudera/weather.csv' overwrite into table weather;
+
+create table vehicle(vehicle_id string,year string,make string,Model string,drivetrain string,max_torque string,max_horsepower string,max_horsepower_rpm string,max_torque_rpm string,engine_displacement string,fuel_type string,fuel_tank_capacity string,fuel_economy_city string,fuel_economy_highway string,cylinders string,forced_induction string,device_generation string)
+
+LOAD DATA INPATH '/user/cloudera/vehicle.csv' overwrite into table vehicle;
+
+Printing out file with sql query
+
+ insert overwrite directory '/home/cloudera/Desktop/oneq' select a.vehicle_id As Vehicle_Id,a.rpm as Car RPM,a.velocity as Velocity,b.lat As Latitude,b.velocity As TripVelocity from drive a inner join trip b on a.vehicle_id=b.vehicle_id;
+
+total time took to excute query is 2 hour
+
